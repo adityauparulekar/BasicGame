@@ -69,9 +69,9 @@ class MyGame(arcade.Window):
         """Called whenever a key is pressed. """
 
         if key == arcade.key.UP:
-            self.player_move = MOVEMENT
+            self.player_move += MOVEMENT
         elif key == arcade.key.DOWN:
-            self.player_move = -MOVEMENT
+            self.player_move -= MOVEMENT
     def on_mouse_press(self, x, y, button, modifiers):
         if self.current_state == GAME_OVER:
             # Restart the game.
@@ -89,6 +89,7 @@ class MyGame(arcade.Window):
             if not (self.player_sprite.center_y + self.player_move > 550 or self.player_sprite.center_y + self.player_move < 250):
                 self.player_sprite.center_y += self.player_move
             self.player_move = 0
+
             new_column = Column(self.columns[-1])
             self.columns.append(new_column)
             for i in range(4):
@@ -147,7 +148,7 @@ class Column():
 def main():
     game = MyGame()
     game.setup()
-    game.set_update_rate(0.5)
+    game.set_update_rate(1)
     arcade.run()
 
 if __name__ == "__main__":
