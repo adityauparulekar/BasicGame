@@ -18,7 +18,7 @@ class Player(arcade.Sprite):
         if not mom is None:
             self.brain = NeuralNetwork(1)
         else:
-            self.brain = NeuralNetwork(0.05, mom, dad)
+            self.brain = NeuralNetwork(0.01, mom, dad)
 
     def draw(self):
         self.draw()

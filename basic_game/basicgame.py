@@ -8,8 +8,9 @@ MOVEMENT = 100
 GAME_RUNNING = 0
 GAME_OVER = 1
 
-NUM_PLAYERS = 190
-SURVIVORS = 20
+NUM_PLAYERS = 280
+SURVIVORS = 15
+NUM_SAME = 10
 
 class MyGame(arcade.Window):
     def __init__(self):
@@ -33,8 +34,11 @@ class MyGame(arcade.Window):
         self.gen_number+=1
         bp = self.best_players()
         self.player_list = arcade.SpriteList()
-        for i in range(len(bp)-1):
-            for j in range(i+1, len(bp)):
+        for i in range(len(bp)):
+            for j in range(i, len(bp)):
+                if i == j:
+                    for i in range(NUM_SAME):
+                        self.player_list.append(Player(bp[i], bp[j]))
                 self.player_list.append(Player(bp[i], bp[j]))
 
     def setup(self):
