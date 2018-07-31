@@ -1,4 +1,6 @@
 import arcade
+import numpy as np
+from nnetwork import *
 
 PLAYER_SCALING = 60/3016
 
@@ -8,7 +10,8 @@ class Player():
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 250
         self.player_move = 0
-        self.player_pos = 0
+
+        self.brain = NeuralNetwork()
 
     def draw(self):
         self.player_sprite.draw()
