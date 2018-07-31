@@ -9,8 +9,8 @@ MAX_WIDTH = 10
 
 class Arena():
     def __init__(self):
-        self.markov = np.array([[0.8, 0.1, 0.1], [0.3, 0.6, 0.1], [0.6, 0.2, 0.2]])
-        self.obstacle_markov = np.array([[0.8, 0.2], [0.5, 0.5], [0.6, 0.4]])
+        self.markov = np.array([[0.8, 0.1, 0.1], [0.5, 0.4, 0.1], [0.75, 0.1, 0.15]])
+        self.obstacle_markov = np.array([[0.8, 0.2], [0.6, 0.4], [0.8, 0.2]])
         self.raw = [1]
         self.raw += [0,0,0,0]*MAX_WIDTH
         self.coin_list = arcade.SpriteList()
@@ -37,6 +37,7 @@ class Arena():
                 addition = np.random.choice(3, p=self.markov[self.raw[-4+i]])
                 if addition == 2:
                     has_obstacle = True
+
             new_column.append(addition)
 
 

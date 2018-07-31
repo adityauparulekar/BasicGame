@@ -12,6 +12,8 @@ NUM_PLAYERS = 280
 SURVIVORS = 15
 NUM_SAME = 10
 
+NUM_COLS_TRAINED = 1
+
 class MyGame(arcade.Window):
     def __init__(self):
         super().__init__(800, 800, "basicgame")
@@ -40,6 +42,8 @@ class MyGame(arcade.Window):
                     for i in range(NUM_SAME):
                         self.player_list.append(Player(bp[i], bp[j]))
                 self.player_list.append(Player(bp[i], bp[j]))
+        self.player_list[0].alpha = 1
+        print(self.player_list[0].brain.weights1)
 
     def setup(self):
         if self.first_gen:
@@ -88,7 +92,7 @@ class MyGame(arcade.Window):
         if self.current_state == GAME_RUNNING:
             self.arena.update()
             for player in self.player_list:
-                player.update(np.array(self.arena.raw))
+                player.update(np.array(self.arena.raw[4:4*NUM_COLS_TRAINED+5]+[player.pos]))
                 for coin in arcade.check_for_collision_with_list(player, self.arena.coin_list):
                     player.score += player.active
 
@@ -105,7 +109,7 @@ class MyGame(arcade.Window):
 def main():
     game = MyGame()
     game.setup()
-    game.set_update_rate(0.01)
+    game.set_update_rate(0.005)
     arcade.run()
 
 if __name__ == "__main__":
