@@ -1,12 +1,9 @@
 import arcade
 from column import *
+from player import *
+from arena import *
 
-COIN_SCALING = 60/200
-OBSTACLE_SCALING = 60/250
-PLAYER_SCALING = 60/3016
 MOVEMENT = 100
-COLUMN_WIDTH = 80
-
 GAME_RUNNING = 0
 GAME_OVER = 1
 
@@ -15,26 +12,15 @@ class MyGame(arcade.Window):
         super().__init__(800, 800, "basicgame")
 
         arcade.set_background_color(arcade.color.AMAZON)
-        self.player_sprite = None
-        self.player_list = None
-        self.coin_list = None
-        self.obstacle_list = None
-        self.player_move = 0
-        self.columns = []
+        self.arena = None
+        self.player = None
         self.current_state = GAME_RUNNING
 
     def setup(self):
-        self.player_list = arcade.SpriteList()
-        self.coin_list = arcade.SpriteList()
-        self.obstacle_list = arcade.SpriteList()
-
-        column1 = Column()
-        self.columns.append(column1)
+        self.player = Player()
+        self.arena = Arena()
         self.score = 0
-        self.player_sprite = arcade.Sprite("character.png", PLAYER_SCALING)
-        self.player_sprite.center_x = 64
-        self.player_sprite.center_y = 250
-        self.player_list.append(self.player_sprite)
+
     def draw_game_over(self):
         """
         Draw "Game over" across the screen.
@@ -44,12 +30,15 @@ class MyGame(arcade.Window):
 
         output = "Click to restart"
         arcade.draw_text(output, 310, 300, arcade.color.WHITE, 24)
+
+
     def draw_game(self):
-        self.coin_list.draw()
-        self.player_list.draw()
-        self.obstacle_list.draw()
+
+        self.player.draw()
+        self.arena.draw()
+
         output = f"Score: {self.score}"
-        arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
+        arcade.draw_text(output, 10, 40, arcade.color.WHITE, 14)
         arcade.draw_line(0, 600, 800, 600, arcade.color.WOOD_BROWN, 10)
         arcade.draw_line(0, 500, 800, 500, arcade.color.WOOD_BROWN, 3)
         arcade.draw_line(0, 400, 800, 400, arcade.color.WOOD_BROWN, 3)
@@ -69,9 +58,10 @@ class MyGame(arcade.Window):
         """Called whenever a key is pressed. """
 
         if key == arcade.key.UP:
-            self.player_move += MOVEMENT
+            self.player.player_move += MOVEMENT
         elif key == arcade.key.DOWN:
-            self.player_move -= MOVEMENT
+            self.player.player_move -= MOVEMENT
+
     def on_mouse_press(self, x, y, button, modifiers):
         if self.current_state == GAME_OVER:
             # Restart the game.
@@ -80,47 +70,20 @@ class MyGame(arcade.Window):
 
     def update(self, delta_time):
         if self.current_state == GAME_RUNNING:
-            for coin in self.coin_list:
-                coin.center_x -= COLUMN_WIDTH
-            for obstacle in self.obstacle_list:
-                obstacle.center_x -= COLUMN_WIDTH
-            for column in self.columns:
-                column.position -= COLUMN_WIDTH
-            if not (self.player_sprite.center_y + self.player_move > 550 or self.player_sprite.center_y + self.player_move < 250):
-                self.player_sprite.center_y += self.player_move
-            self.player_move = 0
+            self.arena.update()
+            self.player.update()
 
-            new_column = Column(self.columns[-1])
-            self.columns.append(new_column)
-            for i in range(4):
-                if new_column.components[i] == 2:
-                    new_obstacle = arcade.Sprite("obstacle.png", OBSTACLE_SCALING)
-                    new_obstacle.center_x = new_column.position
-                    new_obstacle.center_y = 550 - (100*i)
-                    self.obstacle_list.append(new_obstacle)
-                elif new_column.components[i] == 1:
-                    new_coin = arcade.Sprite("coin.png", COIN_SCALING)
-                    new_coin.center_x = new_column.position
-                    new_coin.center_y = 550 - (100*i)
-                    self.coin_list.append(new_coin)
-            for coin in arcade.check_for_collision_with_list(self.player_sprite, self.coin_list):
+            for coin in arcade.check_for_collision_with_list(self.player.player_sprite, self.arena.coin_list):
                 coin.kill()
                 self.score += 1
-            for coin in self.coin_list:
-                if coin.center_x < -50:
-                    coin.kill()
-            for obstacle in self.obstacle_list:
-                if obstacle.center_x < -50:
-                    obstacle.kill()
-            if len(arcade.check_for_collision_with_list(self.player_sprite, self.obstacle_list)) != 0:
+
+            if len(arcade.check_for_collision_with_list(self.player.player_sprite, self.arena.obstacle_list)) != 0:
                 self.current_state = GAME_OVER
-
-
 
 def main():
     game = MyGame()
     game.setup()
-    game.set_update_rate(0.25)
+    game.set_update_rate(0.3)
     arcade.run()
 
 if __name__ == "__main__":
