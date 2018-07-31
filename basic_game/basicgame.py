@@ -7,19 +7,22 @@ MOVEMENT = 100
 GAME_RUNNING = 0
 GAME_OVER = 1
 
+NUM_PLAYERS = 2
+
 class MyGame(arcade.Window):
     def __init__(self):
         super().__init__(800, 800, "basicgame")
 
         arcade.set_background_color(arcade.color.AMAZON)
         self.arena = None
-        self.player = None
+        self.player_list = arcade.SpriteList()
         self.current_state = GAME_RUNNING
 
     def setup(self):
-        self.player = Player()
+
+        for i in range(NUM_PLAYERS):
+            self.player_list.append(Player())
         self.arena = Arena()
-        self.score = 0
 
     def draw_game_over(self):
         """
@@ -34,11 +37,11 @@ class MyGame(arcade.Window):
 
     def draw_game(self):
 
-        self.player.draw()
+        self.player_list.draw()
         self.arena.draw()
 
-        output = f"Score: {self.score}"
-        arcade.draw_text(output, 10, 40, arcade.color.WHITE, 14)
+        #output = f"Score: {self.score}"
+        #arcade.draw_text(output, 10, 40, arcade.color.WHITE, 14)
         arcade.draw_line(0, 600, 800, 600, arcade.color.WOOD_BROWN, 10)
         arcade.draw_line(0, 500, 800, 500, arcade.color.WOOD_BROWN, 3)
         arcade.draw_line(0, 400, 800, 400, arcade.color.WOOD_BROWN, 3)
@@ -54,14 +57,6 @@ class MyGame(arcade.Window):
             self.draw_game()
             self.draw_game_over()
 
-    def on_key_press(self, key, modifiers):
-        """Called whenever a key is pressed. """
-
-        if key == arcade.key.UP:
-            self.player.player_move += MOVEMENT
-        elif key == arcade.key.DOWN:
-            self.player.player_move -= MOVEMENT
-
     def on_mouse_press(self, x, y, button, modifiers):
         if self.current_state == GAME_OVER:
             # Restart the game.
@@ -71,15 +66,20 @@ class MyGame(arcade.Window):
     def update(self, delta_time):
         if self.current_state == GAME_RUNNING:
             self.arena.update()
-            self.player.update()
+            for player in self.player_list:
+                player.update(np.array(self.arena.raw))
+                for coin in arcade.check_for_collision_with_list(player, self.arena.coin_list):
+                    player.score += player.active
 
-            for coin in arcade.check_for_collision_with_list(self.player.player_sprite, self.arena.coin_list):
-                coin.kill()
-                self.score += 1
+                if len(arcade.check_for_collision_with_list(player, self.arena.obstacle_list)) != 0:
+                    player.active = 0
 
-            if len(arcade.check_for_collision_with_list(self.player.player_sprite, self.arena.obstacle_list)) != 0:
-                self.current_state = GAME_OVER
+        self.current_state = GAME_OVER
 
+        for player in self.player_list:
+            print(player.score)
+            if player.active == 1:
+                self.current_state = GAME_RUNNING
 def main():
     game = MyGame()
     game.setup()
