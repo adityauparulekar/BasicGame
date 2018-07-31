@@ -14,16 +14,16 @@ class Player(arcade.Sprite):
         self.dad = dad
         self.score = 0
         self.active = 1
+        self.transparent = True
         if not mom is None:
             self.brain = NeuralNetwork(1)
         else:
-            self.brain = NeuralNetwork(0.1, mom, dad)
+            self.brain = NeuralNetwork(0.05, mom, dad)
 
     def draw(self):
         self.draw()
 
     def update(self, raw):
         player_move = (self.brain.get_move(raw)-1)*MOVEMENT
-        print(player_move)
         if not (self.center_y + player_move > 550 or self.center_y + player_move < 250):
             self.center_y += player_move

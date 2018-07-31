@@ -2,26 +2,48 @@ import arcade
 from column import *
 from player import *
 from arena import *
+import functools
 
 MOVEMENT = 100
 GAME_RUNNING = 0
 GAME_OVER = 1
 
-NUM_PLAYERS = 2
+NUM_PLAYERS = 190
+SURVIVORS = 20
 
 class MyGame(arcade.Window):
     def __init__(self):
         super().__init__(800, 800, "basicgame")
-
         arcade.set_background_color(arcade.color.AMAZON)
         self.arena = None
         self.player_list = arcade.SpriteList()
         self.current_state = GAME_RUNNING
+        self.first_gen = True
+        self.best_score = 0
+        self.gen_number = 0
+
+    def best_players(self):
+        def compare_players(player1, player2):
+            return player2.score-player1.score
+        best_player_list = sorted(self.player_list, key=functools.cmp_to_key(compare_players))
+        self.best_score = best_player_list[0].score
+        return best_player_list[0:SURVIVORS]
+
+    def next_gen(self):
+        self.gen_number+=1
+        bp = self.best_players()
+        self.player_list = arcade.SpriteList()
+        for i in range(len(bp)-1):
+            for j in range(i+1, len(bp)):
+                self.player_list.append(Player(bp[i], bp[j]))
 
     def setup(self):
-
-        for i in range(NUM_PLAYERS):
-            self.player_list.append(Player())
+        if self.first_gen:
+            self.first_gen = False
+            for i in range(NUM_PLAYERS):
+                self.player_list.append(Player())
+        else:
+            self.next_gen()
         self.arena = Arena()
 
     def draw_game_over(self):
@@ -40,8 +62,8 @@ class MyGame(arcade.Window):
         self.player_list.draw()
         self.arena.draw()
 
-        #output = f"Score: {self.score}"
-        #arcade.draw_text(output, 10, 40, arcade.color.WHITE, 14)
+        output = f"Score: {self.best_score} Generation: {self.gen_number}"
+        arcade.draw_text(output, 10, 80, arcade.color.WHITE, 14)
         arcade.draw_line(0, 600, 800, 600, arcade.color.WOOD_BROWN, 10)
         arcade.draw_line(0, 500, 800, 500, arcade.color.WOOD_BROWN, 3)
         arcade.draw_line(0, 400, 800, 400, arcade.color.WOOD_BROWN, 3)
@@ -55,11 +77,6 @@ class MyGame(arcade.Window):
             self.draw_game()
         else:
             self.draw_game()
-            self.draw_game_over()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        if self.current_state == GAME_OVER:
-            # Restart the game.
             self.setup()
             self.current_state = GAME_RUNNING
 
@@ -73,17 +90,18 @@ class MyGame(arcade.Window):
 
                 if len(arcade.check_for_collision_with_list(player, self.arena.obstacle_list)) != 0:
                     player.active = 0
+                    #player.alpha = 0.5
 
         self.current_state = GAME_OVER
 
         for player in self.player_list:
-            print(player.score)
             if player.active == 1:
                 self.current_state = GAME_RUNNING
+
 def main():
     game = MyGame()
     game.setup()
-    game.set_update_rate(0.3)
+    game.set_update_rate(0.01)
     arcade.run()
 
 if __name__ == "__main__":
