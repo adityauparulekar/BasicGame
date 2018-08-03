@@ -7,14 +7,14 @@ from brain import *
 PLAYER_SCALING = 60/3016
 MOVEMENT = 100
 
-INPUTS = 13
+INPUTS = 9
 OUTPUTS = 3
 
 class Player(arcade.Sprite):
-    neuron_pool = NeuronPool(INPUTS, OUTPUTS, 100)
+    neuron_pool = NeuronPool(INPUTS, OUTPUTS, 200)
     neuron_count = 10
     new_neurons = 3
-    def __init__(self, mom = None, dad = None):
+    def __init__(self, best = False, mom = None, dad = None):
         super().__init__("character.png", PLAYER_SCALING)
         self.center_x = 64
         self.center_y = 250
@@ -24,7 +24,11 @@ class Player(arcade.Sprite):
         self.active = 1
         self.pos = 0
         if mom is None:
-            self.brain = Brain(Player.neuron_pool.get_neurons(Player.neuron_count))
+            if best is False:
+                self.brain = Brain(Player.neuron_pool.get_neurons(Player.neuron_count))
+                self.brain.mutate()
+            else:
+                self.brain = Brain(Player.neuron_pool.best_neurons(10))
         else:
             self.brain = mom.brain.merge(dad.brain,Player.neuron_count-Player.new_neurons)
             self.brain.neurons += Player.neuron_pool.get_sample_neurons()
@@ -39,10 +43,8 @@ class Player(arcade.Sprite):
             self.pos += player_move
             self.center_y += player_move*MOVEMENT
 
-    def update_fitness(self, victory):
-        if victory == True:
-            for neuron in self.neurons:
-                neuron.fitness = (neuron.fitness+1)/2
-        else:
-            for neuron in self.neurons:
-                neuron.fitness = neuron.fitness/2
+    def update_fitness(self):
+        for neuron in self.brain.neurons:
+            if neuron.fitness_update == False:
+                neuron.fitness = (99*neuron.fitness+1)/100
+                neuron.fitness_update = True

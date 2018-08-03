@@ -8,11 +8,11 @@ MOVEMENT = 100
 GAME_RUNNING = 0
 GAME_OVER = 1
 
-NUM_PLAYERS = 1000
-SURVIVORS = 50
-NUM_SAME = 10
+NUM_PLAYERS = 100
+SURVIVORS = 15
+NUM_SAME = 2
 
-NUM_COLS_TRAINED = 2
+NUM_COLS_TRAINED = 1
 
 class MyGame(arcade.Window):
     def __init__(self):
@@ -35,20 +35,32 @@ class MyGame(arcade.Window):
     def next_gen(self):
         self.gen_number+=1
         bp = self.best_players()
+        Player.neuron_pool.decay_fitness()
+        for player in bp:
+            player.update_fitness()
         self.player_list = arcade.SpriteList()
         for i in range(len(bp)):
             for j in range(i, len(bp)):
                 if i == j:
                     for k in range(NUM_SAME):
-                        self.player_list.append(Player(bp[i], bp[j]))
-                self.player_list.append(Player(bp[i], bp[j]))
+                        self.player_list.append(Player(False, bp[i], bp[j]))
+                self.player_list.append(Player(False, bp[i], bp[j]))
+        self.player_list.append(Player(True))
 
     def setup(self):
         if self.first_gen:
             self.first_gen = False
             for i in range(NUM_PLAYERS):
-                self.player_list.append(Player())
+                self.player_list.append(Player(False))
         else:
+            max_fitness = 0
+            best_neuron = None
+            for neuron in Player.neuron_pool.neurons:
+                if neuron.fitness > max_fitness:
+                    best_neuron = neuron
+                    max_fitness = neuron.fitness
+
+            best_neuron.print_weights()
             self.next_gen()
         self.arena = Arena()
 
@@ -90,10 +102,11 @@ class MyGame(arcade.Window):
                 if player.active == 1:
                     player_pos_list = [0,0,0,0]
                     player_pos_list[player.pos] = 1
-                    player.update(np.array([1]+self.arena.raw[4:4*NUM_COLS_TRAINED+4]+player_pos_list))
-                    for coin in arcade.check_for_collision_with_list(player, self.arena.coin_list):
+                    input_data = [1]+self.arena.raw[4:4*NUM_COLS_TRAINED+4]+player_pos_list
+                    player.update(np.array(input_data))
+                    if self.arena.raw[3-player.pos] == 1:
                         player.score += player.active
-                    if len(arcade.check_for_collision_with_list(player, self.arena.obstacle_list)) != 0:
+                    if self.arena.raw[3-player.pos] == -1:
                         player.active = 0
 
         self.current_state = GAME_OVER
@@ -105,7 +118,7 @@ class MyGame(arcade.Window):
 def main():
     game = MyGame()
     game.setup()
-    game.set_update_rate(0.005)
+    game.set_update_rate(0.03)
     arcade.run()
 
 if __name__ == "__main__":

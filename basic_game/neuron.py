@@ -7,7 +7,7 @@ class Neuron():
         self.num_outputs = num_outputs
         self.input_weights = np.random.randn(1, self.num_inputs)
         self.output_weights = np.random.randn(1, self.num_outputs)
-        self.fitness = 0
+        self.fitness = 0.01
 
     def sigmoid(self, x):
         return 1/(math.exp(-x)+1)
@@ -19,3 +19,8 @@ class Neuron():
     def mutate(self, rate):
         self.input_weights += np.random.randn(1, self.num_inputs)*rate
         self.output_weights += np.random.randn(1, self.num_outputs)*rate
+
+    def print_weights(self):
+        print(self.input_weights)
+        print(self.output_weights)
+        print()

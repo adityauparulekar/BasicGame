@@ -16,7 +16,6 @@ class Brain():
     def merge(self, other_brain, number):
         return Brain(random.sample(self.neurons+other_brain.neurons, number))
 
-
     def mutate(self):
         for neuron in self.neurons:
-            neuron.mutate()
+            neuron.mutate(0.1)
