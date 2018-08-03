@@ -9,18 +9,17 @@ MAX_WIDTH = 10
 
 class Arena():
     def __init__(self):
-        self.markov = np.array([[0.8, 0.1, 0.1], [0.5, 0.4, 0.1], [0.75, 0.1, 0.15]])
+        self.markov = np.array([[0.15, 0.75, 0.1], [0.1, 0.8, 0.1], [0.1, 0.5, 0.4]])
         self.obstacle_markov = np.array([[0.8, 0.2], [0.6, 0.4], [0.8, 0.2]])
-        self.raw = [1]
-        self.raw += [0,0,0,0]*MAX_WIDTH
+        self.raw = [0,0,0,0]*MAX_WIDTH
         self.coin_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
 
     def shift(self):
-        self.raw.pop(1)
-        self.raw.pop(1)
-        self.raw.pop(1)
-        self.raw.pop(1)
+        self.raw.pop(0)
+        self.raw.pop(0)
+        self.raw.pop(0)
+        self.raw.pop(0)
 
         for coin in self.coin_list:
             coin.center_x -= COLUMN_WIDTH
@@ -34,8 +33,8 @@ class Arena():
             if has_obstacle:
                 addition = np.random.choice(2, p=self.obstacle_markov[self.raw[-4+i]])
             else:
-                addition = np.random.choice(3, p=self.markov[self.raw[-4+i]])
-                if addition == 2:
+                addition = np.random.choice(3, p=self.markov[self.raw[-4+i]])-1
+                if addition == -1:
                     has_obstacle = True
 
             new_column.append(addition)
@@ -46,7 +45,7 @@ class Arena():
 
     def create_sprites(self, column):
         for i in range(4):
-            if column[i] == 2:
+            if column[i] == -1:
                 new_obstacle = arcade.Sprite("obstacle.png", OBSTACLE_SCALING)
                 new_obstacle.center_x = SPRITE_STARTING
                 new_obstacle.center_y = 550 - (100*i)

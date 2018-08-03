@@ -8,11 +8,11 @@ MOVEMENT = 100
 GAME_RUNNING = 0
 GAME_OVER = 1
 
-NUM_PLAYERS = 280
-SURVIVORS = 15
+NUM_PLAYERS = 1000
+SURVIVORS = 50
 NUM_SAME = 10
 
-NUM_COLS_TRAINED = 1
+NUM_COLS_TRAINED = 2
 
 class MyGame(arcade.Window):
     def __init__(self):
@@ -42,8 +42,54 @@ class MyGame(arcade.Window):
                     for i in range(NUM_SAME):
                         self.player_list.append(Player(bp[i], bp[j]))
                 self.player_list.append(Player(bp[i], bp[j]))
-        self.player_list[0].alpha = 1
         print(self.player_list[0].brain.weights1)
+
+    def next_gen1(self):
+        self.gen_number+=1
+        bp = self.player_list
+        print([x.score for x in bp])
+        def compare_players(player1, player2):
+            return player2.score-player1.score
+        best_player_list = sorted(bp, key=functools.cmp_to_key(compare_players))
+        self.best_score = best_player_list[0].score
+
+        self.player_list = arcade.SpriteList()
+        for i in range(len(bp)):
+            for j in range(i, len(bp)):
+                if i == j:
+                    for k in range(NUM_SAME):
+                        self.player_list.append(Player(bp[i], bp[j]))
+                self.player_list.append(Player(bp[i], bp[j]))
+        print(self.player_list[0].brain.weights1)
+
+    def next_gen2(self):
+        self.gen_number+=1
+        bp = self.player_list
+        print([x.score for x in bp])
+        def compare_players(player1, player2):
+            return player2.score-player1.score
+        best_player_list = sorted(bp, key=functools.cmp_to_key(compare_players))
+        self.best_score = best_player_list[0].score
+
+        self.player_list = arcade.SpriteList()
+        for i in range(len(bp)):
+            for j in range(i, len(bp)):
+                if i == j:
+                    for k in range(NUM_SAME):
+                        self.player_list.append(Player(bp[i], bp[j]))
+                self.player_list.append(Player(bp[i], bp[j]))
+        print(self.player_list[0].brain.weights1)
+
+    def next_gen3(self):
+        self.gen_number+=1
+        bp = self.player_list
+        self.player_list = arcade.SpriteList()
+        for i in range(len(bp)):
+            for j in range(i, len(bp)):
+                if i == j:
+                    for k in range(NUM_SAME):
+                        self.player_list.append(Player(bp[i], bp[j]))
+                self.player_list.append(Player(bp[i], bp[j]))
 
     def setup(self):
         if self.first_gen:
@@ -51,7 +97,7 @@ class MyGame(arcade.Window):
             for i in range(NUM_PLAYERS):
                 self.player_list.append(Player())
         else:
-            self.next_gen()
+            self.next_gen3()
         self.arena = Arena()
 
     def draw_game_over(self):
@@ -92,7 +138,9 @@ class MyGame(arcade.Window):
         if self.current_state == GAME_RUNNING:
             self.arena.update()
             for player in self.player_list:
-                player.update(np.array(self.arena.raw[4:4*NUM_COLS_TRAINED+5]+[player.pos]))
+                player_pos_list = [0,0,0,0]
+                player_pos_list[player.pos] = 1
+                player.update(np.array([1]+self.arena.raw[4:4*NUM_COLS_TRAINED+4]+player_pos_list))
                 for coin in arcade.check_for_collision_with_list(player, self.arena.coin_list):
                     player.score += player.active
 
@@ -100,11 +148,15 @@ class MyGame(arcade.Window):
                     player.active = 0
                     #player.alpha = 0.5
 
-        self.current_state = GAME_OVER
+        del_index = 0
+        while(del_index < len(self.player_list)):
+            while(del_index < len(self.player_list) and self.player_list[del_index].active == 0):
+                self.player_list[del_index].kill()
+                del_index += 1
+            del_index += 1
 
-        for player in self.player_list:
-            if player.active == 1:
-                self.current_state = GAME_RUNNING
+        if len(self.player_list) <= SURVIVORS:
+            self.current_state = GAME_OVER
 
 def main():
     game = MyGame()
