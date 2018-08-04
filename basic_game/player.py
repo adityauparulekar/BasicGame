@@ -15,7 +15,19 @@ class Player(arcade.Sprite):
     neuron_count = 10
     new_neurons = 3
     def __init__(self, best = False, mom = None, dad = None):
-        super().__init__("character.png", PLAYER_SCALING)
+        if mom is None and best is False:
+            super().__init__("character.png", PLAYER_SCALING)
+            self.brain = Brain(Player.neuron_pool.get_neurons(Player.neuron_count))
+            self.brain.mutate()
+        elif mom is None and best is True:
+            super().__init__("character.png", PLAYER_SCALING*1.5)
+            self.brain = Brain(Player.neuron_pool.best_neurons(10))
+        else:
+            super().__init__("character.png", PLAYER_SCALING)
+            self.brain = mom.brain.merge(dad.brain,Player.neuron_count-Player.new_neurons)
+            self.brain.neurons += Player.neuron_pool.get_sample_neurons()
+            self.brain.mutate()
+
         self.center_x = 64
         self.center_y = 250
         self.mom = mom
@@ -23,16 +35,6 @@ class Player(arcade.Sprite):
         self.score = 0
         self.active = 1
         self.pos = 0
-        if mom is None:
-            if best is False:
-                self.brain = Brain(Player.neuron_pool.get_neurons(Player.neuron_count))
-                self.brain.mutate()
-            else:
-                self.brain = Brain(Player.neuron_pool.best_neurons(10))
-        else:
-            self.brain = mom.brain.merge(dad.brain,Player.neuron_count-Player.new_neurons)
-            self.brain.neurons += Player.neuron_pool.get_sample_neurons()
-            self.brain.mutate()
 
     def draw(self):
         self.draw()
